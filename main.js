@@ -2,30 +2,54 @@ let currentWeather = [];
 let weatherForecast = [];
 
 const renderWeatherData = () => {
-  document.querySelector(".weather-data").replaceChildren();
-
   const weather = currentWeather[0];
-  const template = `<div class = "row weather-data"><div class = "current-conditions col-md-3 offset-md-3 text-center"><strong>
+
+  if (weatherForecast.length < 4) {
+    return;
+  }
+
+  //Daily Data Array
+  const dailyData = weatherForecast[0].map((_, i) => ({
+    condition: weatherForecast[0][i],
+    temp: weatherForecast[1][i],
+    icon: weatherForecast[2][i],
+    day: weatherForecast[3][i],
+  }));
+
+  console.log(dailyData);
+
+  let currentTemplate = `<div class = "row current-weather mb-4">
+    <div class = "current-conditions col-md-3 offset-md-3 text-center"><strong>
       <div>${Math.round(weather.temp)}°F</div>
-      <div>${weather.city}</div>
-      <div>${weather.condition}</div>
-      
-      </strong></div>
-      <div class="current-icon col-md-2" >
-      <img src="https://openweathermap.org/img/wn/${weather.icon}@2x.png" alt="${weather.condition}">
+        <div>${weather.city}</div>
+          <div>${weather.condition}</div></strong>
+    
+            </div>
+          <div class="current-icon col-md-2" >
+        <img src="https://openweathermap.org/img/wn/${weather.icon}@2x.png" alt="${weather.condition}">
       </div>
 
       </div>
 
       `;
 
-  // for(let i = 0 ; i < weatherForecast.length; i++){
-  //   const forecast =
-  // }
+  const forecastHTML = dailyData
+    .map(
+      (item) => `
+    <div class="col-md-2 text-center day"><strong>
+      <div>${item.condition}</div>
+      <div>${item.temp}</div>
+      <img src="https://openweathermap.org/img/wn/${item.icon}@2x.png" alt="${item.condition}">
+      <div>${item.day}</div>
+      </strong>
+    </div>
+  `,
+    )
+    .join("");
 
-  document
-    .querySelector(".weather-data")
-    .insertAdjacentHTML("beforeend", template);
+  document.querySelector(".weather-data").innerHTML =
+    currentTemplate +
+    `<div class="row forecast-data offset-md-1 text-center">${forecastHTML}</div>`;
 };
 
 //Event Listener
@@ -40,6 +64,8 @@ document.querySelector(".search").addEventListener("click", function (e) {
 });
 
 const addCurrentWeather = (data) => {
+  currentWeather = [];
+
   const conditions = {
     temp: (data.main.temp - 273.15) * (9 / 5) + 32,
     city: data.name || null,
@@ -48,12 +74,12 @@ const addCurrentWeather = (data) => {
   };
 
   //Add to beginning of array
-  currentWeather.unshift(conditions);
-
-  renderWeatherData();
+  currentWeather.push(conditions);
 };
 
 const addForecast = (data) => {
+  weatherForecast = [];
+
   const weatherArray = [];
   const tempArray = [];
   const iconArray = [];
@@ -69,7 +95,9 @@ const addForecast = (data) => {
     count += 1;
 
     subWeather.push(data.list[i].weather[0].main);
-    subTemp.push((data.list[i].main.temp - 273.15) * (9 / 5) + 32);
+    subTemp.push(
+      `${Math.round((data.list[i].main.temp - 273.15) * (9 / 5) + 32)}°F`,
+    );
     subIcon.push(data.list[i].weather[0].icon);
     const date = new Date(data.list[i].dt_txt);
     subDay.push(date.toLocaleDateString("en-US", { weekday: "long" }));
@@ -116,13 +144,14 @@ const fetchWeather = (query) => {
     .then((data) => {
       addCurrentWeather(data);
 
-      const latitude = data.coord.lat;
-      const longitude = data.coord.lon;
-
-      const urlForecast = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=d408f27efbf2eb54ef2bd39871d4fe8b`;
+      const urlForecast = `https://api.openweathermap.org/data/2.5/forecast?lat=${data.coord.lat}&lon=${data.coord.lon}&appid=d408f27efbf2eb54ef2bd39871d4fe8b`;
 
       return fetch(urlForecast);
     })
     .then((res) => res.json())
-    .then((forecastData) => addForecast(forecastData));
+    .then((forecastData) => {
+      addForecast(forecastData);
+
+      renderWeatherData();
+    });
 };

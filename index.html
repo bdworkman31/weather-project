@@ -22,8 +22,8 @@
           <hr class="page-divider" />
 
           <form id="search-form" class="mb-4">
-            <div class="form-row">
-              <div class="col-7 offset-md-1">
+            <div class="form-row container-fluid">
+              <div class="col-6 offset-md-1">
                 <input
                   type="text"
                   id="search-query"
@@ -31,9 +31,9 @@
                   placeholder="Enter the City Name Here"
                 />
               </div>
-              <div class="col-1">
+              <div class="col-2">
                 <button type="submit" class="btn btn-primary btn-block search">
-                  Search
+                  Search City
                 </button>
               </div>
 
@@ -46,10 +46,19 @@
                 </button>
               </div>
             </div>
+            
           </form>
           <div class=""container-fluid">
           <div class="weather-data offset-md-2"></div>
           </div>
+          <div class="mt-5 col-4 offset-md-4 text-center">
+              <button
+                  type="submit"
+                  class="btn btn-primary btn-block geo-locate"
+                >
+                  Weather at my Current Location
+                </button>
+            </div>
         </div>
       </div>
     </div>

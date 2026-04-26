@@ -1,8 +1,9 @@
 let currentWeather = [];
 let weatherForecast = [];
 
-if (sessionStorage.defaultWeather) {
-  let savedWeather = sessionStorage.defaultWeather;
+//Render on Page Reload, etc.
+if (localStorage.defaultWeather) {
+  let savedWeather = localStorage.defaultWeather;
 
   document.querySelector(".weather-data").innerHTML =
     `<div class="text-left mb-5 default-city"><strong>DEFAULT CITY</strong></div>` +
@@ -41,7 +42,7 @@ const renderWeatherData = () => {
     <div class="col-md-2 text-center day"><strong>
       <div>${item.condition}</div>
       <div>${item.temp}</div>
-      <img src="https://openweathermap.org/img/wn/${item.icon}@2x.png" alt="${item.condition}">
+      <img src="https://openweathermap.org/img/wn/${item.icon}@2x.png" class="img-fluid" alt="${item.condition}">
       <div>${item.day}</div>
       </strong>
     </div>
@@ -55,6 +56,20 @@ const renderWeatherData = () => {
     `<div class="row forecast-data text-center">${forecastHTML}</div>`;
 };
 
+//Event Listener for Geolocation
+document.querySelector(".geo-locate").addEventListener("click", (e) => {
+  e.preventDefault();
+  navigator.geolocation.getCurrentPosition((position) => {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    console.log(lat);
+    console.log(lon);
+
+    fetchWeather(lat, lon);
+  });
+});
+
 //Event Listener for Set Default
 document.querySelector(".set-default").addEventListener("click", (e) => {
   e.preventDefault();
@@ -67,11 +82,11 @@ document.querySelector(".set-default").addEventListener("click", (e) => {
   }
 
   const field = weatherData.innerHTML;
-  sessionStorage.setItem("defaultWeather", field);
+  localStorage.setItem("defaultWeather", field);
 
   weatherData.innerHTML =
     `<div class="text-left mb-5 default-city"><strong>DEFAULT CITY</strong></div>` +
-    sessionStorage.defaultWeather;
+    localStorage.defaultWeather;
 });
 
 //Event Listener for Search
@@ -156,8 +171,14 @@ const mode = (array) => {
   return mode[0][0];
 };
 
-const fetchWeather = (query) => {
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${query}&appid=d408f27efbf2eb54ef2bd39871d4fe8b`;
+const fetchWeather = (...args) => {
+  let url;
+
+  if (args.length === 1) {
+    url = `https://api.openweathermap.org/data/2.5/weather?q=${args[0]}&appid=d408f27efbf2eb54ef2bd39871d4fe8b`;
+  } else {
+    url = `https://api.openweathermap.org/data/2.5/weather?lat=${args[0]}&lon=${args[1]}&appid=d408f27efbf2eb54ef2bd39871d4fe8b`;
+  }
 
   //GET Request by Default;  Includes Error Handling
   fetch(url)

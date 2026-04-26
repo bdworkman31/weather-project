@@ -9,7 +9,6 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
     />
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <title>Weather App</title>
   </head>
@@ -24,7 +23,7 @@
 
           <form id="search-form" class="mb-4">
             <div class="form-row">
-              <div class="col-8 offset-md-1">
+              <div class="col-7 offset-md-1">
                 <input
                   type="text"
                   id="search-query"
@@ -32,15 +31,25 @@
                   placeholder="Enter the City Name Here"
                 />
               </div>
-              <div class="col-2">
+              <div class="col-1">
                 <button type="submit" class="btn btn-primary btn-block search">
                   Search
                 </button>
               </div>
+
+              <div class="col-2">
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-block set-default"
+                >
+                  Set as Default
+                </button>
+              </div>
             </div>
           </form>
-
-          <div class="weather-data"></div>
+          <div class=""container-fluid">
+          <div class="weather-data offset-md-2"></div>
+          </div>
         </div>
       </div>
     </div>

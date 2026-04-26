@@ -1,12 +1,16 @@
 let currentWeather = [];
 let weatherForecast = [];
 
+if (sessionStorage.defaultWeather) {
+  let savedWeather = sessionStorage.defaultWeather;
+
+  document.querySelector(".weather-data").innerHTML =
+    `<div class="text-left mb-5 default-city"><strong>DEFAULT CITY</strong></div>` +
+    savedWeather;
+}
+
 const renderWeatherData = () => {
   const weather = currentWeather[0];
-
-  if (weatherForecast.length < 4) {
-    return;
-  }
 
   //Daily Data Array
   const dailyData = weatherForecast[0].map((_, i) => ({
@@ -16,10 +20,8 @@ const renderWeatherData = () => {
     day: weatherForecast[3][i],
   }));
 
-  console.log(dailyData);
-
   let currentTemplate = `<div class = "row current-weather mb-4">
-    <div class = "current-conditions col-md-3 offset-md-3 text-center"><strong>
+    <div class = "current-conditions col-md-3 offset-md-2 text-center"><strong>
       <div>${Math.round(weather.temp)}°F</div>
         <div>${weather.city}</div>
           <div>${weather.condition}</div></strong>
@@ -43,17 +45,37 @@ const renderWeatherData = () => {
       <div>${item.day}</div>
       </strong>
     </div>
+    
   `,
     )
     .join("");
 
   document.querySelector(".weather-data").innerHTML =
     currentTemplate +
-    `<div class="row forecast-data offset-md-1 text-center">${forecastHTML}</div>`;
+    `<div class="row forecast-data text-center">${forecastHTML}</div>`;
 };
 
-//Event Listener
-document.querySelector(".search").addEventListener("click", function (e) {
+//Event Listener for Set Default
+document.querySelector(".set-default").addEventListener("click", (e) => {
+  e.preventDefault();
+
+  const weatherData = document.querySelector(".weather-data");
+
+  const label = weatherData.querySelector(".default-city");
+  if (label) {
+    label.remove();
+  }
+
+  const field = weatherData.innerHTML;
+  sessionStorage.setItem("defaultWeather", field);
+
+  weatherData.innerHTML =
+    `<div class="text-left mb-5 default-city"><strong>DEFAULT CITY</strong></div>` +
+    sessionStorage.defaultWeather;
+});
+
+//Event Listener for Search
+document.querySelector(".search").addEventListener("click", (e) => {
   e.preventDefault();
 
   const city = document.querySelector("#search-query").value;
@@ -73,7 +95,6 @@ const addCurrentWeather = (data) => {
     icon: data.weather[0].icon || null,
   };
 
-  //Add to beginning of array
   currentWeather.push(conditions);
 };
 
@@ -138,9 +159,12 @@ const mode = (array) => {
 const fetchWeather = (query) => {
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${query}&appid=d408f27efbf2eb54ef2bd39871d4fe8b`;
 
-  //GET Request by Default
+  //GET Request by Default;  Includes Error Handling
   fetch(url)
-    .then((data) => data.json())
+    .then((data) => {
+      if (!data.ok) throw new Error("City not found.  Please re-enter.");
+      return data.json();
+    })
     .then((data) => {
       addCurrentWeather(data);
 
@@ -153,5 +177,9 @@ const fetchWeather = (query) => {
       addForecast(forecastData);
 
       renderWeatherData();
+    })
+
+    .catch((error) => {
+      alert(error.message);
     });
 };

@@ -21,6 +21,32 @@ const renderWeatherData = () => {
     day: weatherForecast[3][i],
   }));
 
+  //Change Styling Based on Current Weather w/ Switch Statement
+  switch (weather.condition) {
+    case "Clouds":
+      document.body.style.backgroundColor = "#80808080";
+      break;
+    case "Clear":
+      document.body.style.backgroundColor = "#d4ef3a80";
+      break;
+    case "Mist":
+      document.body.style.backgroundColor = "#647eef80";
+      break;
+    case "Rain":
+      document.body.style.backgroundColor = "#0e0e8080";
+      break;
+    case "Thunderstorm":
+      document.body.style.backgroundColor = "#87070780";
+      break;
+    case "Drizzle":
+      document.body.style.backgroundColor = "#89CFF080";
+      break;
+    case "Haze":
+      document.body.style.backgroundColor = "#C4A48480";
+    default:
+      document.body.style.backgroundColor = "white";
+  }
+
   let currentTemplate = `<div class = "row current-weather mb-4">
     <div class = "current-conditions col-md-3 offset-md-2 text-center"><strong>
       <div>${Math.round(weather.temp)}°F</div>
@@ -29,7 +55,7 @@ const renderWeatherData = () => {
     
             </div>
           <div class="current-icon col-md-2" >
-        <img src="https://openweathermap.org/img/wn/${weather.icon}@2x.png" alt="${weather.condition}">
+        <img src="https://openweathermap.org/img/wn/${weather.icon}@2x.png" class="condition ${weather.condition}" alt="${weather.condition}">
       </div>
 
       </div>
@@ -57,18 +83,63 @@ const renderWeatherData = () => {
 };
 
 //Event Listener for Geolocation
+const spinner = document.getElementById("spinner");
+
 document.querySelector(".geo-locate").addEventListener("click", (e) => {
   e.preventDefault();
-  navigator.geolocation.getCurrentPosition((position) => {
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
 
-    console.log(lat);
-    console.log(lon);
+  spinner.style.display = "block";
+
+  //Error Handling
+
+  let lat;
+  let lon;
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      lat = position.coords.latitude;
+      lon = position.coords.longitude;
+
+      fetchWeather(lat, lon);
+    },
+    (error) => {
+      spinner.style.display = "none";
+      alert(
+        "Either Location Access Denied or timed out. Refresh the Page and Try Again",
+      );
+    },
+    { timeout: 7000 },
+  );
+});
+
+//Event Listener when clicking on map
+
+//Event Listener for Map
+let clickMarker;
+
+function initMap() {
+  const map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: 36.2371, lng: -79.9795 },
+    zoom: 9,
+  });
+
+  map.addListener("click", (e) => {
+    const lat = e.latLng.lat();
+    const lon = e.latLng.lng();
+
+    if (clickMarker) {
+      clickMarker.setMap(null);
+    }
+
+    clickMarker = new google.maps.Marker({
+      position: { lat: lat, lng: lon },
+      map: map,
+      title: "Selected Location",
+    });
 
     fetchWeather(lat, lon);
   });
-});
+}
 
 //Event Listener for Set Default
 document.querySelector(".set-default").addEventListener("click", (e) => {
@@ -175,9 +246,9 @@ const fetchWeather = (...args) => {
   let url;
 
   if (args.length === 1) {
-    url = `https://api.openweathermap.org/data/2.5/weather?q=${args[0]}&appid=d408f27efbf2eb54ef2bd39871d4fe8b`;
+    url = `https://api.openweathermap.org/data/2.5/weather?q=${args[0]}&appid="d408f27efbf2eb54ef2bd39871d4fe8b"`;
   } else {
-    url = `https://api.openweathermap.org/data/2.5/weather?lat=${args[0]}&lon=${args[1]}&appid=d408f27efbf2eb54ef2bd39871d4fe8b`;
+    url = `https://api.openweathermap.org/data/2.5/weather?lat=${args[0]}&lon=${args[1]}&appid="d408f27efbf2eb54ef2bd39871d4fe8b"`;
   }
 
   //GET Request by Default;  Includes Error Handling
@@ -202,5 +273,8 @@ const fetchWeather = (...args) => {
 
     .catch((error) => {
       alert(error.message);
+    })
+    .finally(() => {
+      spinner.style.display = "none";
     });
 };

@@ -43,6 +43,7 @@ const renderWeatherData = () => {
       break;
     case "Haze":
       document.body.style.backgroundColor = "#C4A48480";
+      break;
     default:
       document.body.style.backgroundColor = "white";
   }
@@ -90,10 +91,7 @@ document.querySelector(".geo-locate").addEventListener("click", (e) => {
 
   spinner.style.display = "block";
 
-  //Error Handling
-
-  let lat;
-  let lon;
+  //Geolocation with Error Handling
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
@@ -115,31 +113,53 @@ document.querySelector(".geo-locate").addEventListener("click", (e) => {
 //Event Listener when clicking on map
 
 //Event Listener for Map
+
+let map;
 let clickMarker;
 
 function initMap() {
-  const map = new google.maps.Map(document.getElementById("map"), {
+  map = new google.maps.Map(document.getElementById("map"), {
     center: { lat: 36.2371, lng: -79.9795 },
-    zoom: 9,
+    zoom: 12,
   });
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const initialPos = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+
+      updateWeatherByMap(initialPos.lat, initialPos.lng);
+    });
+  }
 
   map.addListener("click", (e) => {
     const lat = e.latLng.lat();
     const lon = e.latLng.lng();
 
-    if (clickMarker) {
-      clickMarker.setMap(null);
-    }
-
-    clickMarker = new google.maps.Marker({
-      position: { lat: lat, lng: lon },
-      map: map,
-      title: "Selected Location",
-    });
-
-    fetchWeather(lat, lon);
+    updateWeatherByMap(e.latLng.lat(), e.latLng.lng());
   });
 }
+
+//Map Helper Function
+updateWeatherByMap = (lat, lon) => {
+  const pos = { lat, lng: lon };
+
+  map.panTo(pos);
+
+  if (clickMarker) {
+    clickMarker.setMap(null);
+  }
+
+  clickMarker = new google.maps.Marker({
+    position: pos,
+    map: map,
+    title: "Selected Location",
+  });
+
+  fetchWeather(lat, lon);
+};
 
 //Event Listener for Set Default
 document.querySelector(".set-default").addEventListener("click", (e) => {
@@ -246,9 +266,9 @@ const fetchWeather = (...args) => {
   let url;
 
   if (args.length === 1) {
-    url = `https://api.openweathermap.org/data/2.5/weather?q=${args[0]}&appid="d408f27efbf2eb54ef2bd39871d4fe8b"`;
+    url = `https://api.openweathermap.org/data/2.5/weather?q=${args[0]}&appid=d408f27efbf2eb54ef2bd39871d4fe8b`;
   } else {
-    url = `https://api.openweathermap.org/data/2.5/weather?lat=${args[0]}&lon=${args[1]}&appid="d408f27efbf2eb54ef2bd39871d4fe8b"`;
+    url = `https://api.openweathermap.org/data/2.5/weather?lat=${args[0]}&lon=${args[1]}&appid=d408f27efbf2eb54ef2bd39871d4fe8b`;
   }
 
   //GET Request by Default;  Includes Error Handling
